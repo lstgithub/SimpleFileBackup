@@ -10,7 +10,72 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-        <Button x:Name="myButton" Click="myButton_Click">Click Me</Button>
-    </StackPanel>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/> <!-- Buttons -->
+            <RowDefinition Height="20*"/> <!-- Files -->
+        </Grid.RowDefinitions>
+
+        <Grid x:Name="ControlButtons" Grid.Row="0" VerticalAlignment="Top" HorizontalAlignment="Left">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!-- Buttons -->
+            <Grid.Resources>
+                <Style TargetType="Button">
+                    <Setter Property="HorizontalAlignment" Value="Stretch" />
+                    <Setter Property="VerticalAlignment" Value="Stretch" />
+                    <Setter Property="CornerRadius" Value="1" />
+                    <Setter Property="Foreground" Value="White" />
+                    <Setter Property="FontSize" Value="12" />
+                    <Setter Property="BorderBrush" Value="White"/>
+                </Style>
+            </Grid.Resources>
+
+            <Button Grid.Row="0" Grid.Column="0" Content="Root"/>
+            <Button Grid.Row="0" Grid.Column="1" Content="Start"/>
+            <Button Grid.Row="0" Grid.Column="2" Content="Stop"/>
+        </Grid>
+
+        <Grid x:Name="Files" Grid.Row="1" VerticalAlignment="Top">
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="4*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Grid.Resources>
+                <Style TargetType="StackPanel">
+                    <Setter Property="CornerRadius" Value="1" />
+                    <Setter Property="BorderThickness" Value="1"/>
+                    <Setter Property="BorderBrush" Value="White"/>
+                    <Setter Property="VerticalAlignment" Value="Top"/>
+                    <Setter Property="Margin" Value="0"/>
+                    <Setter Property="Padding" Value ="0, 0, 0 0"/>
+                </Style>
+            </Grid.Resources>
+
+            <StackPanel Grid.Column="0" VerticalAlignment="Top" >
+                <TextBlock Foreground="White" FontSize="12" Text="List of changed folders" HorizontalTextAlignment="Center"/>
+                <ListView>
+                    <x:String>Folder</x:String>
+                </ListView>
+            </StackPanel>
+            <StackPanel Grid.Column="1">
+                <TextBlock Foreground="White" FontSize="12" Text="List of changed files" HorizontalTextAlignment="Center"/>
+                <ListView>
+                    <x:String>File</x:String>
+                </ListView>
+            </StackPanel>
+        </Grid>
+    </Grid>
 </Window>

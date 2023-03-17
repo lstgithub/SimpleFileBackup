@@ -31,9 +31,7 @@ namespace SimpleFileBackup
             this.InitializeComponent();
         }
 
-        private void myButton_Click(object sender, RoutedEventArgs e)
-        {
-            myButton.Content = "Clicked";
-        }
+        private void Start(ItemClickEventArgs e);
+
     }
 }
