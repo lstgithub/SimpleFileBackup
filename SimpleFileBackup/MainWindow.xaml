@@ -21,6 +21,7 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />
@@ -38,9 +39,11 @@
                 </Style>
             </Grid.Resources>
 
-            <Button Grid.Row="0" Grid.Column="0" Content="Root"/>
-            <Button Grid.Row="0" Grid.Column="1" Content="Start"/>
-            <Button Grid.Row="0" Grid.Column="2" Content="Stop"/>
+            
+            <Button x:Name="RootButton" Grid.Row="0" Grid.Column="0" Content="Root" Click="RootButton_Click"/>
+            <Button x:Name="ScanButton" Grid.Row="0" Grid.Column="1" Content="Scan" Click="ScanButton_Click"/>
+            <Button x:Name="StartButton" Grid.Row="0" Grid.Column="2" Content="Start" Click="StartButton_Click"/>
+            <Button x:Name="StopButton" Grid.Row="0" Grid.Column="3" Content="Stop" Click="StopButton_Click"/>
         </Grid>
 
         <Grid x:Name="Files" Grid.Row="1" VerticalAlignment="Top">
@@ -66,14 +69,14 @@
 
             <StackPanel Grid.Column="0" VerticalAlignment="Top" >
                 <TextBlock Foreground="White" FontSize="12" Text="List of changed folders" HorizontalTextAlignment="Center"/>
-                <ListView>
-                    <x:String>Folder</x:String>
+                <ListView x:Name="FoldersList">
+                    
                 </ListView>
             </StackPanel>
             <StackPanel Grid.Column="1">
                 <TextBlock Foreground="White" FontSize="12" Text="List of changed files" HorizontalTextAlignment="Center"/>
-                <ListView>
-                    <x:String>File</x:String>
+                <ListView x:Name="FilesList">
+                    
                 </ListView>
             </StackPanel>
         </Grid>
