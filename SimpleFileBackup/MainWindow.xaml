@@ -22,6 +22,7 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />
@@ -40,10 +41,11 @@
             </Grid.Resources>
 
             
-            <Button x:Name="RootButton" Grid.Row="0" Grid.Column="0" Content="Root" Click="RootButton_Click"/>
-            <Button x:Name="ScanButton" Grid.Row="0" Grid.Column="1" Content="Scan" Click="ScanButton_Click"/>
-            <Button x:Name="StartButton" Grid.Row="0" Grid.Column="2" Content="Start" Click="StartButton_Click"/>
-            <Button x:Name="StopButton" Grid.Row="0" Grid.Column="3" Content="Stop" Click="StopButton_Click"/>
+            <Button x:Name="SourceButton" Grid.Row="0" Grid.Column="0" Content="Source" Click="SourceButton_Click"/>
+            <Button x:Name="DestinationButton" Grid.Row="0" Grid.Column="1" Content="Destination" Click="DestinationButton_Click"/>
+            <Button x:Name="ScanButton" Grid.Row="0" Grid.Column="2" Content="Scan" Click="ScanButton_Click"/>
+            <Button x:Name="StartButton" Grid.Row="0" Grid.Column="3" Content="Start" Click="StartButton_Click"/>
+            <Button x:Name="StopButton" Grid.Row="0" Grid.Column="4" Content="Stop" Click="StopButton_Click"/>
         </Grid>
 
         <Grid x:Name="Files" Grid.Row="1" VerticalAlignment="Top">

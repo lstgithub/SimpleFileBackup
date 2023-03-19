@@ -25,14 +25,16 @@ namespace SimpleFileBackup
             this.InitializeComponent();
         }
 
-        private readonly string _versionFilePath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" +
+        // Most important file to ensure that only modified/added/deleted files will be taken to work
+        public readonly string VersionFilePath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" +
                                                    "SimpleFileBackupVersionHistory.txt";
-        private StorageFolder _rootPath;
-        public List<string> DeletedFiles = new List<string>();
-        public List<string> ModifiedFiles = new List<string>();
-        public List<string> AddedFiles = new List<string>();
+        public StorageFolder SourcePath; // Source location is ALWAYS used as a latest and most up-to-date file system state. After click on "Start", destination location will be mirrored
+        public StorageFolder DestinationPath;
+        public List<string> DeletedFiles = new();
+        public List<string> ModifiedFiles = new();
+        public List<string> AddedFiles = new();
 
-        private async void RootButton_Click(object sender, RoutedEventArgs e)
+        private async void SourceButton_Click(object sender, RoutedEventArgs e)
         {
             var window = new Window();
             var windowId = WinRT.Interop.WindowNative.GetWindowHandle(window);
@@ -40,19 +42,41 @@ namespace SimpleFileBackup
             folderPicker.FileTypeFilter.Add("*");
             folderPicker.SuggestedStartLocation = PickerLocationId.ComputerFolder;
             WinRT.Interop.InitializeWithWindow.Initialize(folderPicker, windowId);
-            _rootPath = await folderPicker.PickSingleFolderAsync();
-            if (_rootPath != null)
+            SourcePath = await folderPicker.PickSingleFolderAsync();
+            if (SourcePath != null)
             {
-                RootButton.Content = _rootPath.DisplayName;
+                SourceButton.Content = SourcePath.DisplayName;
+            }
+        }
+
+        private async void DestinationButton_Click(object sender, RoutedEventArgs e)
+        {
+            var window = new Window();
+            var windowId = WinRT.Interop.WindowNative.GetWindowHandle(window);
+            var folderPicker = new FolderPicker();
+            folderPicker.FileTypeFilter.Add("*");
+            folderPicker.SuggestedStartLocation = PickerLocationId.ComputerFolder;
+            WinRT.Interop.InitializeWithWindow.Initialize(folderPicker, windowId);
+            DestinationPath = await folderPicker.PickSingleFolderAsync();
+            if (DestinationPath != null)
+            {
+                DestinationButton.Content = DestinationPath.DisplayName;
             }
         }
 
         private void ScanButton_Click(object sender, RoutedEventArgs e)
         {
+            // Clear lists to reflect the latest file system changes on each click
+            DeletedFiles.Clear();
+            AddedFiles.Clear();
+            ModifiedFiles.Clear();
+
+            // Ensure is it an initial launch of the app or not
             if (CheckForFirstScan())
             {
                 CreateVersionFile();
                 WriteInitialVersionFile();
+                CollectChanges();
             }
             else
             {
@@ -61,34 +85,49 @@ namespace SimpleFileBackup
         }
         private void StartButton_Click(object sender, RoutedEventArgs e)
         {
-
+            //StartFilesHandling();
         }
+
+        private void StartFilesHandling()
+        {
+            DeleteFiles(DeletedFiles);
+            UpdateFiles(ModifiedFiles);
+            AddFiles(AddedFiles);
+        }
+
         private void StopButton_Click(object sender, RoutedEventArgs e)
         {
 
         }
 
-        private List<string> GetAllFiles()
+        private List<string> GetAllFiles(StorageFolder folder)
         {
-            string path = _rootPath.Path;
-            return Directory.GetFiles(path, "*", SearchOption.AllDirectories).ToList();
+            return Directory.GetFiles(folder.Path, "*", SearchOption.AllDirectories).ToList();
         }
 
         private bool CheckForFirstScan()
         {
-            if (!File.Exists(_versionFilePath))
-                return true;
-            return false;
+            // Check for file presence and non-zero size. If not true for any statement, file will be re-created
+            if (File.Exists(VersionFilePath))
+            {
+                try
+                {
+                    if (new FileInfo(VersionFilePath).Length > 0)
+                        return false;
+                }
+                catch { }
+            }
+            return true;
         }
 
         private void WriteInitialVersionFile()
         {
-            File.WriteAllLines(_versionFilePath, CollectFiles());
+            File.WriteAllLines(VersionFilePath, CollectFiles(SourcePath));
         }
 
-        private List<string> CollectFiles()
+        private List<string> CollectFiles(StorageFolder folder)
         {
-            var rawAllFiles = GetAllFiles();
+            var rawAllFiles = GetAllFiles(folder);
             var allFiles = new List<string>();
             foreach (var file in rawAllFiles)
             {
@@ -101,10 +140,23 @@ namespace SimpleFileBackup
 
         private void CollectChanges()
         {
-            var originalList = File.ReadAllLines(_versionFilePath);
-            var currentList = CollectFiles();
+            var originalList = File.ReadAllLines(VersionFilePath);
+            var originalNames = new List<string>();
+            var currentList = CollectFiles(DestinationPath);
+            var currentNames = new List<string>();
             var differences = new List<string>();
-            IEnumerable<string> diff = originalList.Except(currentList);
+            IEnumerable<string> diff = originalNames.Except(currentNames);
+
+            foreach (var name in originalList)
+            {
+                originalNames.Add(GetFileNameFromList(name));
+            }
+
+            foreach (var name in currentList)
+            {
+                currentNames.Add(GetFileNameFromList(name));
+            }
+
             foreach (string s in diff)
             {
                 differences.Add(s);
@@ -113,24 +165,48 @@ namespace SimpleFileBackup
             var diffNames = new List<string>();
             foreach (var file in differences)
             {
-                diffNames.Add(GetFileNameFromList(file));
+                diffNames.Add(file);
             }
-
+            
             foreach (var file in diffNames)
             {
-                if (originalList.Contains(file) && currentList.Contains(file))
+                if (originalNames.Any(x => x.Equals(file)) && currentNames.Any(x => x.Equals(file)))
                 {
                     ModifiedFiles.Add(file);
                 }
-                if (originalList.Contains(file) && !currentList.Contains(file))
+                if (originalNames.Any(x => x.Equals(file)) && !currentNames.Any(x => x.Equals(file)))
                 {
-                    DeletedFiles.Add(file);
+                    // Fallback for the case, when destination directory is empty. In this case, all differences will be interpreted like added files
+                    if (currentNames.Count == 0)
+                        AddedFiles.Add(file);
+                    else
+                        DeletedFiles.Add(file);
                 }
-                if (!originalList.Contains(file) && currentList.Contains(file))
+                if (!originalNames.Any(x => x.Equals(file)) && currentNames.Any(x => x.Equals(file)))
                 {
                     AddedFiles.Add(file);
                 }
+            }
+        }
 
+        private void DeleteFiles(List<string> files)
+        {
+            foreach (var file in files)
+            {
+                
+            }
+        }
+
+        private void UpdateFiles(List<string> files)
+        {
+
+        }
+
+        private void AddFiles(List<string> files)
+        {
+            foreach (var file in files)
+            {
+                
             }
         }
 
@@ -142,7 +218,7 @@ namespace SimpleFileBackup
 
         private void CreateVersionFile()
         {
-            File.Create(_versionFilePath).Close();
+            File.Create(VersionFilePath).Close();
         }
     }
 }
