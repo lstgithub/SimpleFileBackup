@@ -85,14 +85,15 @@ namespace SimpleFileBackup
         }
         private void StartButton_Click(object sender, RoutedEventArgs e)
         {
-            //StartFilesHandling();
+            StartFilesHandling();
         }
 
         private void StartFilesHandling()
         {
             DeleteFiles(DeletedFiles);
-            UpdateFiles(ModifiedFiles);
-            AddFiles(AddedFiles);
+            UpdateOrAddFiles(AddedFiles);
+            UpdateOrAddFiles(ModifiedFiles);
+            
         }
 
         private void StopButton_Click(object sender, RoutedEventArgs e)
@@ -107,7 +108,7 @@ namespace SimpleFileBackup
 
         private bool CheckForFirstScan()
         {
-            // Check for file presence and non-zero size. If not true for any statement, file will be re-created
+            // Check for file presence and non-zero size. If false for any statement, file will be re-created
             if (File.Exists(VersionFilePath))
             {
                 try
@@ -170,43 +171,51 @@ namespace SimpleFileBackup
             
             foreach (var file in diffNames)
             {
+                // If a file is present in both source and destination, further handling to detect changes will be done later
                 if (originalNames.Any(x => x.Equals(file)) && currentNames.Any(x => x.Equals(file)))
                 {
                     ModifiedFiles.Add(file);
                 }
+                // If a file is present in the source and absent in the destination, it will be added
                 if (originalNames.Any(x => x.Equals(file)) && !currentNames.Any(x => x.Equals(file)))
                 {
-                    // Fallback for the case, when destination directory is empty. In this case, all differences will be interpreted like added files
+                    // Fallback for the case, when destination directory is empty. In this case, all differences will be interpreted like added files to comply with a user's logic
                     if (currentNames.Count == 0)
                         AddedFiles.Add(file);
                     else
                         DeletedFiles.Add(file);
                 }
+                // Source has no files as destination has. Destination differences will be deleted
                 if (!originalNames.Any(x => x.Equals(file)) && currentNames.Any(x => x.Equals(file)))
                 {
-                    AddedFiles.Add(file);
+                    DeletedFiles.Add(file);
                 }
             }
         }
 
-        private void DeleteFiles(List<string> files)
+        private async void DeleteFiles(List<string> files)
         {
+            // Single thread, because multi-threading is not helpful for this kind of operation
             foreach (var file in files)
             {
-                
+                try
+                {
+                    await Task.Run(() => File.Delete(file));
+                }
+                catch { }
             }
         }
 
-        private void UpdateFiles(List<string> files)
+        private async void UpdateOrAddFiles(List<string> files)
         {
-
-        }
-
-        private void AddFiles(List<string> files)
-        {
+            // Single thread, because multi-threading is not helpful for this kind of operation
             foreach (var file in files)
             {
-                
+                try
+                {
+                    await Task.Run(() => File.Copy(file, DestinationPath.ToString(), true));
+                }
+                catch { }
             }
         }
 

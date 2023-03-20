@@ -69,18 +69,16 @@
                 </Style>
             </Grid.Resources>
 
-            <StackPanel Grid.Column="0" VerticalAlignment="Top" >
+            
+
+            <!--<StackPanel Grid.Column="0" VerticalAlignment="Top" >
                 <TextBlock Foreground="White" FontSize="12" Text="List of changed folders" HorizontalTextAlignment="Center"/>
-                <ListView x:Name="FoldersList">
-                    
-                </ListView>
+                <ListView x:Name="FoldersList"></ListView>
             </StackPanel>
             <StackPanel Grid.Column="1">
                 <TextBlock Foreground="White" FontSize="12" Text="List of changed files" HorizontalTextAlignment="Center"/>
-                <ListView x:Name="FilesList">
-                    
-                </ListView>
-            </StackPanel>
+                <ListView x:Name="FilesList"></ListView>
+            </StackPanel>-->
         </Grid>
     </Grid>
 </Window>
